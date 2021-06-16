@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timeout
+  labels:
+    app: timeout
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timeout
+  template:
+    metadata:
+      labels:
+        app: timeout
+    spec:
+      containers:
+      - name: timeout
+        image: fabiob/timeout-test
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: '2'
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: timeout
+  labels:
+    app: timeout
+spec:
+  selector:
+    app: timeout
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: timeout
+annotations:
+  nginx.ingress.kubernetes.io/proxy-connect-timeout: '300'
+  nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+  nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+  nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: '300'
+spec:
+  rules:
+  - host: timeout.myk8s.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: timeout
+            port:
+              number: 80
