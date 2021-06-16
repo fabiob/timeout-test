@@ -12,7 +12,5 @@ make build
 Para fazer um teste básico, local:
 
 ```
-make run
 make test
-make clean
 ```
